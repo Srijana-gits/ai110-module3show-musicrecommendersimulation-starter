@@ -18,16 +18,82 @@ Replace this paragraph with your own summary of what your version does.
 ## How The System Works
 
 Explain your design in plain language.
+Real world recommenders build a mathematical fingerprint of your taste from your listening behavior, then surface content cosest to that fingerprint combining what songs sound like with what similar users played.
 
-Some prompts to answer:
+What my version will prioritize is : given few liked songs, it builds a taste profile from their audio features and scores every other song by how closely it matches weighting mood and energy highest, because those reflect why you're listening, not just what you generally like.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
 
-You can include a simple diagram or bullet list if helpful.
+
+### `Song` Features
+
+| Feature | Type | Example |
+|---|---|---|
+| `id` | int | `2` |
+| `title` | str | `"Midnight Coding"` |
+| `artist` | str | `"LoRoom"` |
+| `genre` | str | `"lofi"` |
+| `mood` | str | `"chill"` |
+| `energy` | float [0,1] | `0.42` |
+| `tempo_bpm` | float (normalized) | `0.30` |
+| `valence` | float [0,1] | `0.56` |
+| `danceability` | float [0,1] | `0.62` |
+| `acousticness` | float [0,1] | `0.71` |
+
+### `UserProfile` Features
+
+| Feature | Type | How It's Built |
+|---|---|---|
+| `liked_song_ids` | list[int] | Songs the user marked as liked |
+| `dominant_mood` | str | Most frequent mood across liked songs |
+| `dominant_genre` | str | Most frequent genre across liked songs |
+| `avg_energy` | float | Mean energy of liked songs |
+| `avg_tempo` | float | Mean normalized tempo of liked songs |
+| `avg_valence` | float | Mean valence of liked songs |
+| `avg_danceability` | float | Mean danceability of liked songs |
+| `avg_acousticness` | float | Mean acousticness of liked songs |
+
+The `Song` stores raw data. The `UserProfile` stores derived averages - the mathematical fingerprint computed from songs the user liked.
+
+---
+
+## Terminal Output
+
+![Terminal Output](assets/terminal_output.png)
+
+---
+
+## Algorithm Recipe
+
+### How Scores Are Computed
+
+1. **Load & normalize** — read `songs.csv`, normalize `tempo_bpm` to `[0,1]`
+2. **Filter** — remove songs already in `liked_song_ids`
+3. **Score each song** using weighted proximity:
+
+| Feature | Weight | Method |
+|---|---|---|
+| `mood` | 0.30 | exact match = 1.0, adjacent = 0.5, opposite = 0.0 |
+| `energy` | 0.25 | `1 - abs(song - profile)` |
+| `acousticness` | 0.20 | `1 - abs(song - profile)` |
+| `instrumentalness` | 0.10 | `1 - abs(song - profile)` |
+| `valence` | 0.08 | `1 - abs(song - profile)` |
+| `danceability` | 0.04 | `1 - abs(song - profile)` |
+| `tempo` | 0.02 | `1 - abs(song - profile)` |
+| `genre` | 0.01 | exact match = 1.0, else 0.0 |
+
+4. **Threshold** — drop songs scoring below `0.50`
+5. **Rank** — sort by score descending, return top-K
+6. **Explain** — surface the 2 features that contributed most per recommendation
+
+---
+
+## Potential Biases
+
+- **Mood dominance** — mood carries 30% of the score. A song that matches perfectly on every audio feature but has the wrong mood can still rank below a weaker acoustic match. This is intentional but aggressive.
+- **Filter bubble** — the system only surfaces songs that sound like what the user already liked. It will never suggest something genuinely surprising or outside the acoustic profile.
+- **Small catalog problem** — with 20 songs, multiple songs will cluster near the same score within the chill/acoustic group, making the ranking within that cluster feel arbitrary.
+- **Genre underweighted** — genre is only 1% of the score. A great jazz song will score nearly the same as a great ambient song for the same user, even if the user has a strong genre preference.
+- **Cold start** — if a user only likes 1 song, the profile averages are that single song's values, which may over-fit to one data point.
 
 ---
 
