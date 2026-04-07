@@ -1,111 +1,53 @@
 # 🎧 Model Card: Music Recommender Simulation
 
-## 1. Model Name  
+## 1. Model Name
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
-
----
-
-## 2. Intended Use  
-
-Describe what your recommender is designed to do and who it is for. 
-
-Prompts:  
-
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+**VibeFinder 1.0**
 
 ---
 
-## 3. How the Model Works  
+## 2. Intended Use
 
-Explain your scoring approach in simple language.  
-
-Prompts:  
-
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
-
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+This recommender suggests 5 songs from a small catalog based on a user's mood, genre, and audio preferences. It assumes the user can describe what they want like "I want chill lofi" or "I want intense rock." It is built for classroom exploration, not for real users.
 
 ---
 
-## 4. Data  
+## 3. How the Model Works
 
-Describe the dataset the model uses.  
-
-Prompts:  
-
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
+Every song in the catalog gets a score based on how closely it matches what the user wants. Mood is checked first. if a song matches your mood exactly, it gets a big bonus. Genre is checked next. Then numeric features like energy, acousticness, and danceability are compared, the closer the song's value is to what you want, the more points it earns. The song with the highest total score ranks first. No listening history is used, it only looks at your stated preferences.
 
 ---
 
-## 5. Strengths  
+## 4. Data
 
-Where does your system seem to work well  
-
-Prompts:  
-
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+The catalog has 20 songs. It covers genres like lofi, pop, rock, metal, jazz, ambient, edm, r&b, country, folk, reggae, synthwave, hip-hop, darkwave, latin, and classical. Moods include chill, happy, intense, energetic, sad, angry, melancholic, focused, relaxed, moody, and nostalgic. No songs were added or removed. Genres like blues, soul, and bossa nova are missing entirely, so users with those tastes are not well served.
 
 ---
 
-## 6. Limitations and Bias 
+## 5. Strengths
 
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
+The system works best when a user has a clear, consistent preference like someone who only wants lofi or only wants intense rock. The top results for those profiles matched what a real listener would expect. The scoring explanation also tells you exactly why each song was recommended, which makes it easy to understand and debug.
 
 ---
 
-## 7. Evaluation  
+## 6. Limitations and Bias
 
-How you checked whether the recommender behaved as expected. 
-
-Prompts:  
-
-- Which user profiles you tested  
-- What you looked for in the recommendations  
-- What surprised you  
-- Any simple tests or comparisons you ran  
-
-No need for numeric metrics unless you created some.
+The system ignores lyrics and listening context entirely, it only sees numbers. Genres like blues and soul don't exist in the catalog, so those users always get bad recommendations. Mood is weighted so heavily that it overrides everything else, which isn't always fair. Lofi users get better results simply because there are more lofi songs than any other genre in the catalog.
 
 ---
 
-## 8. Future Work  
+## 7. Evaluation
 
-Ideas for how you would improve the model next.  
-
-Prompts:  
-
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+I tested six user profiles: three standard ones (High-Energy Pop, Chill Lofi, Deep Intense Rock) and three adversarial ones designed to confuse the system (conflicting energy+mood, all-zero features, mismatched genre+mood). For each profile I looked at whether the top 5 results matched what a real person with those preferences would actually want to listen to. The Chill Lofi profile felt the most accurate — the top 3 were all genuine lofi songs. What surprised me was that removing mood entirely caused classical music to appear in a lofi playlist, proving mood was the only thing keeping unrelated genres out. I also ran two experiments — doubling energy weight and commenting out mood — and compared the outputs to the original, which confirmed the original weights were already the most sensible version.
 
 ---
 
-## 9. Personal Reflection  
+## 8. Future Work
 
-A few sentences about your experience.  
+It would help to add more songs so every genre has at least 3 or 4 options. A conflict penalty would improve results, right now a user asking for high energy and sad mood gets a mixed playlist because the system does not know those two signals disagree. Adding tempo as a stronger signal would also help users who specifically want slow or fast music. Longer term, using listening history instead of stated preferences would make recommendations feel more personal.
 
-Prompts:  
+---
 
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+## 9. Personal Reflection
+
+Building this made me realize how much work goes into something as simple as "here are 5 songs you might like." The hardest part was not the code, it was deciding how much each feature should matter. I was surprised that removing mood completely broke the system and let classical music appear in a lofi playlist. It changed how I think about Spotify and YouTube recommendations, those systems are doing the same basic thing, just with millions of songs and real listening data instead of 20 songs and manual preferences.
