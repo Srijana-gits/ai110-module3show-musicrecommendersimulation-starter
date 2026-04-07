@@ -48,7 +48,7 @@ Each song gets a score based on how closely it matches the user's preferences. M
 
 ---
 
-## Sample Output — Per Profile
+## Sample Output Per Profile
 
 ### High-Energy Pop
 ![High-Energy Pop](assets/high_energy_pop.png)
